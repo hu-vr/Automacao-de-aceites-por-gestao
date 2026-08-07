@@ -53,9 +53,9 @@ if __name__ == '__main__':
 def generate_js_snippets(msgs, out: str | Path = 'fill_snippets.js'):
     """Gera snippets JS para colar no console do navegador.
 
-    Preenche o campo de email com id "1", o campo de mensagem com id
-    "MSG_3608ef1b21c_SUBJECT" e clica no botão com a classe
-    "splitButton-rf2__primaryActionButton".
+    Preenche o campo de email com id "0", o assunto com id
+    "MSG_f43ba9e2bc7_SUBJECT" e o corpo da mensagem com a classe
+    "dFCbN customScrollBar dPKNh z8tsM DziEn".
     """
     def esc(s: str) -> str:
         return s.replace("\\", "\\\\").replace("'", "\\'")
@@ -63,7 +63,7 @@ def generate_js_snippets(msgs, out: str | Path = 'fill_snippets.js'):
     js_lines = [
         "// Snippet gerado automaticamente. Cole no console do navegador na página alvo.",
         "function findByClasses(classes){",
-        "  const all = Array.from(document.querySelectorAll('input, textarea, [contenteditable]'));",
+        "  const all = Array.from(document.querySelectorAll('input, textarea, div, [contenteditable]'));",
         "  return all.find(el => classes.every(c => (el.className || '').split(/\\s+/).includes(c)));",
         "}",
         "function setByElement(el, val){",
@@ -92,17 +92,14 @@ def generate_js_snippets(msgs, out: str | Path = 'fill_snippets.js'):
 
     for m in msgs:
         to_email = esc(m['to_email'])
+        subject = esc(f"Verificação do chamado {m['issue_key']}")
         message = esc(m['message'])
-        # classes para localizar o campo de email conforme solicitado pelo usuário
-        email_class_list = [
-            '___h7sz9k0','fwg0e2s','f14t3ns0','f1e2ae29','f2hkw1w','fsslvku','f3w75mx',
-            'f133ih0r','f1jdsjjj','fly5x3f','fgr6219','f1ujusj6','f10jk5vf','fcgxt0o',
-            'f113hnb5','EditorClass','g7toD'
-        ]
         js_lines.append("(function(){")
-        js_lines.append(f"  var emailEl = findByClasses({email_class_list});")
+        js_lines.append("  var emailEl = document.getElementById('0');")
         js_lines.append(f"  setByElement(emailEl, '{to_email}');")
-        js_lines.append(f"  setById('MSG_3608ef1b21c_SUBJECT', '{message}');")
+        js_lines.append("  setByElement(document.getElementById('MSG_f43ba9e2bc7_SUBJECT'), '" + subject + "');")
+        js_lines.append("  var bodyEl = findByClasses(['dFCbN', 'customScrollBar', 'dPKNh', 'z8tsM', 'DziEn']);")
+        js_lines.append(f"  setByElement(bodyEl, '{message}');")
         js_lines.append("  // aguarda 200ms e clica no botão de enviar")
         js_lines.append("  setTimeout(function(){ clickByClass('splitButton-rf2__primaryActionButton'); }, 200);")
         js_lines.append("})();")
