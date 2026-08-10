@@ -23,7 +23,7 @@ ORDER BY reporter DESC, created DESC
 '''
 
 
-def get_relatorio(jql_str: Optional[str] = None, maxResults: int = 50):
+def get_relatorio(jql_str: Optional[str] = None, maxResults: int = 60):
     """Consulta o Jira e retorna dados estruturados para relatórios."""
     jira = JIRA(server=JIRA_SERVER, basic_auth=(JIRA_EMAIL, JIRA_API_TOKEN))
     issues = jira.search_issues(jql_str or DEFAULT_JQL, maxResults=maxResults)
