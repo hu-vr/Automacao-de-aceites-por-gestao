@@ -1,0 +1,8 @@
+Para: YASMIM GOMES PECANHA <yasmim.pecanha@unimedvr.com.br>
+Assunto: Verificação do chamado PDS-64366
+Bom dia Yasmim! Tudo bem?
+
+Poderia verificar o chamado https://unimedvr.atlassian.net/browse/PDS-64366, que no momento está em Aceite do Solicitante, e confirmar se ficou conforme o esperado?
+
+Se estiver tudo certo, pode aceitar, por favor.
+------------------------------------------------------------
