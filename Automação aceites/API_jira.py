@@ -34,7 +34,7 @@ DEFAULT_JQL = (
 )
 
 
-def get_issues(jql_query: str | None = None, max_results: int = 80):
+def get_issues(jql_query: str | None = None, max_results: int = 100):
     """Consulta chamados do Jira usando a API REST do Atlassian."""
     payload = {
         "jql": jql_query or DEFAULT_JQL,
@@ -76,7 +76,7 @@ def get_issues(jql_query: str | None = None, max_results: int = 80):
     return data.get("total", 0), issues
 
 
-def get_relatorio(jql_str: str | None = None, maxResults: int = 50):
+def get_relatorio(jql_str: str | None = None, maxResults: int = 100):
     """Compatibilidade com o código anterior que esperava um dicionário agrupado por relator."""
     total, issues = get_issues(jql_query=jql_str, max_results=maxResults)
 
