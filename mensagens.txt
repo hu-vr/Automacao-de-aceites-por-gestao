@@ -1,8 +1,8 @@
-Para: YASMIM GOMES PECANHA <yasmim.pecanha@unimedvr.com.br>
-Assunto: Verificação do chamado PDS-64366
-Bom dia Yasmim! Tudo bem?
+Para: FULANO DE TAL <exemplo.teste@unimedvr.com.br>
+Assunto: Verificação do chamado PDS-67676
+Bom dia FULANO! Tudo bem?
 
-Poderia verificar o chamado https://unimedvr.atlassian.net/browse/PDS-64366, que no momento está em Aceite do Solicitante, e confirmar se ficou conforme o esperado?
+Poderia verificar o chamado https://unimedvr.atlassian.net/browse/PDS-67676, que no momento está em Aceite do Solicitante, e confirmar se ficou conforme o esperado?
 
 Se estiver tudo certo, pode aceitar, por favor.
 ------------------------------------------------------------
