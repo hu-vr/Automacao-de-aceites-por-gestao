@@ -4,7 +4,9 @@ a cobrança de chamados com o Status "Aceite do solicitante" desenvolvido 100% e
 Para executar o código basta:
 
 1: Preencher suas informações no arquivo .env;
+
 2: Rodar o arquivo meu_email.py;
+
 3: Dar um double click no arquivo.bat.
 
 Após isso seus e-mails serão escritos e enviados automaticamente gerando um log 
