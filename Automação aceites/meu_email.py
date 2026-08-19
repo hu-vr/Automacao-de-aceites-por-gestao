@@ -48,6 +48,7 @@ def generate_messages(data):
             "Atenciosamente,\n\n"
             "Gabriel Apratto"
         )
+        
         msgs.append(
             {
                 "to_name": gestor,
