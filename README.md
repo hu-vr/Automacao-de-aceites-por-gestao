@@ -7,8 +7,6 @@ Para executar o código basta:
 
 2: Rodar o arquivo meu_email.py;
 
-3: Dar um double click no arquivo.bat.
-
 Após isso seus e-mails serão escritos e enviados automaticamente gerando um log 
 de todos os emails enviados com as seguintes informações:
 

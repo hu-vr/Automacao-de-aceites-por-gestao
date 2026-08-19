@@ -29,32 +29,37 @@ def issue_link(key: str) -> str:
 
 def generate_messages(data):
     msgs = []
-    for reporter, entries in data["relators"].items():
-        report_email = data["emails"].get(reporter)
-        if not report_email:
+    for gestor, entries in data["gestores"].items():
+        gestor_email = data["emails"].get(gestor)
+        if not gestor_email:
             continue
 
-        name = first_name(reporter)
-        for entry in entries:
-            link = issue_link(entry["key"])
-            status = entry.get("status", "")
-            body = (
-                f"Bom dia {name}! Tudo bem?\n\n"
-                f"Poderia verificar o chamado {link}, que no momento está em {status}, "
-                "e confirmar se ficou conforme o esperado?\n\n"
-                "Se estiver tudo certo, pode aceitar, por favor."
-            )
-            msgs.append(
-                {
-                    "to_name": reporter,
-                    "to_email": report_email,
-                    "issue_key": entry["key"],
-                    "message": body,
-                }
-            )
+        issue_lines = "\n".join(
+            f"{entry['key']} ({entry['reporter']})" for entry in entries
+        )
+        name = first_name(gestor)
+        body = (
+            f"Bom dia, {name}!\n\n"
+            "Gostaria de verificar com você sobre os seguintes chamados:\n\n"
+            f"{issue_lines}\n\n"
+            'Que hoje estão com o status de "Aguardando aceite do solicitante" a mais de 4 dias.\n\n'
+            "Poderia verificar com os relatores se está tudo correto por favor?\n\n"
+            "Se sim, solicito o aceite nos chamados em questão.\n\n"
+            "Atenciosamente,\n\n"
+            "Gabriel Apratto"
+        )
+        msgs.append(
+            {
+                "to_name": gestor,
+                "to_email": gestor_email,
+                "issue_key": ", ".join(entry["key"] for entry in entries),
+                "message": body,
+            }
+        )
     return msgs
-
-
+#==================================================
+#grava as mensagens em um arquivo .txt
+#==================================================
 def save_messages(msgs, path: str | Path = "mensagens.txt"):
     p = Path(path)
     with p.open("w", encoding="utf-8") as f:
@@ -83,8 +88,9 @@ def send_email(to_email: str, subject: str, body: str):
         server.send_message(message)
 
     return True
-
-
+#==================================================
+#registra o hitórico de emails enviados em um arquivo de log
+#==================================================
 def save_log(entries, path: str | Path = "log_envio.txt"):
     p = Path(path)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -104,7 +110,7 @@ def save_log(entries, path: str | Path = "log_envio.txt"):
 def send_messages(msgs):
     sent = []
     for msg in msgs:
-        subject = f"Verificação do chamado {msg['issue_key']}"
+        subject = "Verificação dos chamados aguardando aceite"
         ok = send_email(msg["to_email"], subject, msg["message"])
         sent.append({**msg, "sent": ok})
     return sent
@@ -112,6 +118,10 @@ def send_messages(msgs):
 
 if __name__ == "__main__":
     data = get_relatorio()
+
+#==================================================
+    #monta o corpo do email
+#==================================================
     messages = generate_messages(data)
 
     if not messages:

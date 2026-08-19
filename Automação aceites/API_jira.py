@@ -22,6 +22,7 @@ API_URL = f"{JIRA_SERVER}/rest/api/3/search/jql"
 
 DEFAULT_JQL = (
     'status = "Aceite do Solicitante" '
+    'AND status changed to "Aceite do Solicitante" before -4d '
     'AND project = PDS '
     'AND "time responsável[dropdown]" IN ('
     '"Sistemas - Dados", '
@@ -33,13 +34,15 @@ DEFAULT_JQL = (
     'ORDER BY reporter DESC, created DESC'
 )
 
-
+#==================================================
+#defina quantos chamados o gira deve buscar
+#==================================================
 def get_issues(jql_query: str | None = None, max_results: int = 100):
     """Consulta chamados do Jira usando a API REST do Atlassian."""
     payload = {
         "jql": jql_query or DEFAULT_JQL,
         "maxResults": max_results,
-        "fields": ["summary", "status", "reporter", "created", "assignee"],
+        "fields": ["summary", "status", "reporter", "created", "assignee", "customfield_10073"],
     }
 
     response = requests.post(
@@ -59,7 +62,7 @@ def get_issues(jql_query: str | None = None, max_results: int = 100):
     for issue in data.get("issues", []):
         fields = issue.get("fields", {})
         reporter = fields.get("reporter") or {}
-        assignee = fields.get("assignee") or {}
+        gestor = fields.get("customfield_10073") or {}
 
         issues.append(
             {
@@ -67,7 +70,8 @@ def get_issues(jql_query: str | None = None, max_results: int = 100):
                 "summary": fields.get("summary", "Sem resumo"),
                 "reporter": reporter.get("displayName", "Sem relator"),
                 "reporter_email": reporter.get("emailAddress"),
-                "assignee": assignee.get("displayName", "Sem responsável"),
+                "gestor": gestor.get("displayName", "Sem gestor"),
+                "gestor_email": gestor.get("emailAddress"),
                 "created": fields.get("created"),
                 "status": (fields.get("status") or {}).get("name", "Sem status"),
             }
@@ -75,31 +79,35 @@ def get_issues(jql_query: str | None = None, max_results: int = 100):
 
     return data.get("total", 0), issues
 
+#==================================================
+#defina quantos chamados o gira deve buscar
+#==================================================
 
 def get_relatorio(jql_str: str | None = None, maxResults: int = 100):
-    """Compatibilidade com o código anterior que esperava um dicionário agrupado por relator."""
+    """Retorna os chamados agrupados pelo gestor do solicitante."""
     total, issues = get_issues(jql_query=jql_str, max_results=maxResults)
 
-    relators = defaultdict(list)
-    relator_emails = {}
+    gestores = defaultdict(list)
+    gestor_emails = {}
 
     for issue in issues:
-        reporter = issue["reporter"]
-        email = issue.get("reporter_email")
+        gestor = issue["gestor"]
+        email = issue.get("gestor_email")
         if email:
-            relator_emails[reporter] = email
-        relators[reporter].append(
+            gestor_emails[gestor] = email
+        gestores[gestor].append(
             {
                 "key": issue["key"],
                 "summary": issue["summary"].replace("\n", " "),
+                "reporter": issue["reporter"],
                 "status": issue["status"],
             }
         )
 
     return {
         "total": total,
-        "relators": dict(relators),
-        "emails": relator_emails,
+        "gestores": dict(gestores),
+        "emails": gestor_emails,
     }
 
 
@@ -109,7 +117,7 @@ def print_issues(issues_data):
 
     for issue in issues:
         print(f"[{issue['key']}] {issue['summary']}")
-        print(f"  └─ Relator: {issue['reporter']} | Responsável: {issue['assignee']} | Status: {issue['status']}")
+        print(f"  └─ Relator: {issue['reporter']} | Gestor: {issue['gestor']} | Status: {issue['status']}")
         print(f"     Criado em: {issue['created']}\n")
 
 
