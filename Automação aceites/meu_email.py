@@ -149,6 +149,9 @@ def send_email(to_email: str, subject: str, body: str):
     message["Subject"] = subject
     message["From"] = SENDER_EMAIL or SMTP_USER
     message["To"] = to_email
+    message["Disposition-Notification-To"] = SENDER_EMAIL or SMTP_USER
+    message["Return-Receipt-To"] = SENDER_EMAIL or SMTP_USER
+    message["X-Confirm-Reading-To"] = SENDER_EMAIL or SMTP_USER
 
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
         server.starttls()
