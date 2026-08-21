@@ -19,6 +19,18 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL", SMTP_USER)
+TEST_EMAIL = os.getenv("TEST_EMAIL")
+DEFAULT_IGNORED_EMAILS = {
+    "augusto.kronig@unimedvr.com.br",
+    "elaine.f.nogueira@unimedvr.com.br",
+    "vitorio.puntel@unimedvr.com.br",
+    "isis.lassarote@unimedvr.com.br",
+}
+IGNORED_EMAILS = {
+    email.strip().lower()
+    for email in os.getenv("IGNORED_EMAILS", ",".join(sorted(DEFAULT_IGNORED_EMAILS))).split(",")
+    if email.strip()
+}
 SIGNATURE_IMAGE_PATH = Path(
     os.getenv("SIGNATURE_IMAGE_PATH", Path(__file__).with_name("assinatura.png"))
 )
@@ -40,42 +52,56 @@ def generate_messages(data):
         if not gestor_email:
             continue
 
-        issue_lines_html = "<br>".join(
-            f'<a href="{escape(issue_link(entry["key"]), quote=True)}">'
-            f"{escape(entry['key'])}</a> - {escape(entry['summary'])} "
-            f"({escape(entry['reporter'])})"
+        issue_lines_html = "".join(
+            (
+                '<li style="margin-bottom: 10px;">'
+                f'<a href="{escape(issue_link(entry["key"]), quote=True)}" style="color: #0b3b5b; text-decoration: none;">'
+                f"{escape(entry['key'])}</a> - {escape(entry['summary'])} "
+                f"– aberto por <strong>{escape(entry['reporter'])}</strong>"
+                "</li>"
+            )
             for entry in entries
         )
         issue_lines_text = "\n".join(
-            f"{issue_link(entry['key'])} - {entry['summary']} ({entry['reporter']})"
+            f"• {issue_link(entry['key'])} - {entry['summary']} – aberto por {entry['reporter']}"
             for entry in entries
         )
         name = first_name(gestor)
         body = (
             f"<p>Bom dia, {escape(name)}!</p>"
-            "<p>Gostaria de verificar com você sobre os seguintes chamados:</p>"
-            f"<p>{issue_lines_html}</p>"
-            '<p>Que hoje estão com o status de "Aguardando aceite do solicitante" '
-            "a mais de 4 dias.</p>"
-            "<p>Poderia verificar com os relatores se está tudo correto por favor?</p>"
-            "<p>Se sim, solicito o aceite nos chamados em questão.</p>"
+            "<p>Gostaria de contar com seu apoio na validação do(s) chamado(s) abaixo, "
+            "que são da sua área e, que estão há mais de 4 dias com o status "
+            '"<strong>Aguardando aceite do solicitante</strong>":</p>'
+            f"<ul style=\"margin: 10px 0 20px 20px; padding-left: 20px;\">{issue_lines_html}</ul>"
+            "<p>Você poderia, por gentileza, verificar com o solicitante se está tudo correto com a entrega? "
+            "Estando tudo de acordo, pedimos, por favor, que seja realizado o <strong>aceite do chamado</strong>, "
+            "para que possamos continuar a demanda, manter nosso fluxo atualizado e evitar retrabalho.</p>"
+            "<p>Desde já, agradeço muito pelo apoio! Se houver qualquer ponto a ajustar ou alguma dúvida, "
+            "fico à disposição para alinharmos.</p>"
             "<p>Atenciosamente,</p>"
-            "<p>Gabriel Fernandes Estevão Apratto<br>"
-            "Tecnologia da informação - Unimed Volta Redonda</p>"
+            "<hr style=\"border: 0; border-top: 1px solid #999; margin: 20px 0 15px;\">"
+            "<p style=\"margin: 0; line-height: 1.5;\"><strong>Gabriel Fernandes E. Apratto</strong><br>"
+            "Tecnologia da Informação - Unimed Volta Redonda<br>"
+            "Celular (24) 9 8120 2072</p>"
             '<p><img src="cid:assinatura" alt="Unimed Volta Redonda" '
-            'style="display:block; width:408px; max-width:100%; height:auto;"></p>'
+            'style="display:block; width:408px; max-width:100%; height:auto; margin-top: 15px;"></p>'
         )
         text_body = (
             f"Bom dia, {name}!\n\n"
-            "Gostaria de verificar com você sobre os seguintes chamados:\n\n"
+            "Gostaria de contar com seu apoio na validação do(s) chamado(s) abaixo, "
+            "que são da sua área e, que estão há mais de 4 dias com o status "
+            '"Aguardando aceite do solicitante":\n\n'
             f"{issue_lines_text}\n\n"
-            'Que hoje estão com o status de "Aguardando aceite do solicitante" '
-            "a mais de 4 dias.\n\n"
-            "Poderia verificar com os relatores se está tudo correto por favor?\n\n"
-            "Se sim, solicito o aceite nos chamados em questão.\n\n"
+            "Você poderia, por gentileza, verificar com o solicitante se está tudo correto com a entrega? "
+            "Estando tudo de acordo, pedimos, por favor, que seja realizado o aceite do chamado, "
+            "para que possamos continuar a demanda, manter nosso fluxo atualizado e evitar retrabalho.\n\n"
+            "Desde já, agradeço muito pelo apoio! Se houver qualquer ponto a ajustar ou alguma dúvida, "
+            "fico à disposição para alinharmos.\n\n"
             "Atenciosamente,\n\n"
-            "Gabriel Fernandes Estevão Apratto\n"
-            "Tecnologia da informação - Unimed Volta Redonda"
+            "----------------------------------------\n"
+            "Gabriel Fernandes E. Apratto\n"
+            "Tecnologia da Informação - Unimed Volta Redonda\n"
+            "Celular (24) 9 8120 2072"
         )
 
         msgs.append(
@@ -165,6 +191,13 @@ if __name__ == "__main__":
     #monta o corpo do email
 #==================================================
     messages = generate_messages(data)
+
+    if TEST_EMAIL:
+        messages = [msg for msg in messages if msg["to_email"].lower() == TEST_EMAIL.lower()]
+    else:
+        messages = [
+            msg for msg in messages if msg["to_email"].lower() not in IGNORED_EMAILS
+        ]
 
     if not messages:
         print("Nenhuma mensagem gerada. Verifique o filtro do Jira e os emails dos relatores.")
